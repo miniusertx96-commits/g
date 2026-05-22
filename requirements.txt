@@ -1,0 +1,6 @@
+pyyaml>=6.0
+requests>=2.31
+rich>=13.0
+shodan>=1.30
+censys>=2.2
+holehe>=1.61
