@@ -3,7 +3,7 @@
 OSINT Toolkit — Main CLI Launcher
 
 A unified interface for running OSINT investigations using
-a layered stack of tools.
+a layered stack of tools. Targets Windows environments.
 """
 
 import argparse
@@ -29,6 +29,7 @@ TOOLS_DIR = ROOT / "tools"
 RESULTS_DIR = ROOT / "results"
 VENV_DIR = ROOT / ".venv"
 CONFIG_DIR = ROOT / "config"
+PYTHON = "python" if sys.platform == "win32" else "python3"
 
 
 # ---------------------------------------------------------------------------
@@ -52,21 +53,26 @@ def banner():
         print("Complete OSINT Investigation Stack\n")
 
 
-def run_cmd(cmd, cwd=None, capture=False):
-    """Run a shell command, streaming output unless capture=True."""
+def run_cmd(args, cwd=None, capture=False, stdout_file=None):
+    """Run a command as an argument list (no shell injection)."""
     try:
-        if capture:
-            result = subprocess.run(
-                cmd, shell=True, cwd=cwd,
-                capture_output=True, text=True, timeout=300,
-            )
+        kwargs = {"cwd": cwd, "timeout": 600, "text": True}
+        if stdout_file:
+            with open(stdout_file, "w") as fout:
+                kwargs["stdout"] = fout
+                kwargs["stderr"] = subprocess.STDOUT
+                subprocess.run(args, **kwargs)
+        elif capture:
+            kwargs["capture_output"] = True
+            kwargs["timeout"] = 300
+            result = subprocess.run(args, **kwargs)
             return result.stdout.strip()
         else:
-            subprocess.run(cmd, shell=True, cwd=cwd, timeout=600)
+            subprocess.run(args, **kwargs)
     except subprocess.TimeoutExpired:
         print("[!] Command timed out")
     except FileNotFoundError:
-        print(f"[!] Command not found: {cmd}")
+        print(f"[!] Command not found: {args[0] if args else args}")
 
 
 def tool_available(name):
@@ -89,11 +95,11 @@ def ensure_results_dir(subdir=""):
 def run_sherlock(username, output_dir):
     """Run Sherlock username search."""
     if not tool_available("sherlock"):
-        print("[!] Sherlock not installed. Run: bash scripts/install_sherlock.sh")
+        print("[!] Sherlock not installed. Run: pip install sherlock-project")
         return
     print(f"[*] Running Sherlock for: {username}")
     out = output_dir / f"sherlock_{username}.txt"
-    run_cmd(f"sherlock {username} --output {out} --print-found")
+    run_cmd(["sherlock", username, "--output", str(out), "--print-found"])
     print(f"[+] Results saved to {out}")
 
 
@@ -104,7 +110,7 @@ def run_holehe(email, output_dir):
         return
     print(f"[*] Running Holehe for: {email}")
     out = output_dir / f"holehe_{email.replace('@', '_at_')}.txt"
-    run_cmd(f"holehe {email} --no-color > {out} 2>&1")
+    run_cmd(["holehe", email, "--no-color"], stdout_file=str(out))
     print(f"[+] Results saved to {out}")
 
 
@@ -113,12 +119,13 @@ def run_theharvester(domain, output_dir):
     th_dir = TOOLS_DIR / "theHarvester"
     th_script = th_dir / "theHarvester.py"
     if not th_script.exists():
-        print("[!] theHarvester not installed. Run: bash scripts/install_theharvester.sh")
+        print("[!] theHarvester not installed. Run the setup script first.")
         return
     print(f"[*] Running theHarvester for: {domain}")
     out = output_dir / f"theharvester_{domain}.txt"
     run_cmd(
-        f"python3 {th_script} -d {domain} -b all -l 500 > {out} 2>&1",
+        [PYTHON, str(th_script), "-d", domain, "-b", "all", "-l", "500"],
+        stdout_file=str(out),
     )
     print(f"[+] Results saved to {out}")
 
@@ -126,11 +133,11 @@ def run_theharvester(domain, output_dir):
 def run_amass(domain, output_dir):
     """Run Amass subdomain enumeration."""
     if not tool_available("amass"):
-        print("[!] Amass not installed. Run: bash scripts/install_amass.sh")
+        print("[!] Amass not installed. Download from https://github.com/owasp-amass/amass/releases")
         return
     print(f"[*] Running Amass for: {domain}")
     out = output_dir / f"amass_{domain}.txt"
-    run_cmd(f"amass enum -passive -d {domain} -o {out}")
+    run_cmd(["amass", "enum", "-passive", "-d", domain, "-o", str(out)])
     print(f"[+] Results saved to {out}")
 
 
@@ -139,11 +146,15 @@ def run_spiderfoot(target, output_dir):
     sf_dir = TOOLS_DIR / "spiderfoot"
     sf_cli = sf_dir / "sfcli.py"
     if not sf_cli.exists():
-        print("[!] SpiderFoot not installed. Run: bash scripts/install_spiderfoot.sh")
+        print("[!] SpiderFoot not installed. Run the setup script first.")
         return
     print(f"[*] Running SpiderFoot for: {target}")
     out = output_dir / f"spiderfoot_{target}.json"
-    run_cmd(f"python3 {sf_cli} -s {target} -o json > {out} 2>&1", cwd=str(sf_dir))
+    run_cmd(
+        [PYTHON, str(sf_cli), "-s", target, "-o", "json"],
+        cwd=str(sf_dir),
+        stdout_file=str(out),
+    )
     print(f"[+] Results saved to {out}")
 
 
@@ -356,7 +367,7 @@ def interactive_menu():
         sf_dir = TOOLS_DIR / "spiderfoot"
         if (sf_dir / "sf.py").exists():
             print("[*] Launching SpiderFoot Web UI on http://127.0.0.1:5001")
-            run_cmd(f"python3 {sf_dir / 'sf.py'} -l 127.0.0.1:5001")
+            run_cmd([PYTHON, str(sf_dir / "sf.py"), "-l", "127.0.0.1:5001"])
         else:
             print("[!] SpiderFoot not installed.")
     elif choice == "9":
@@ -406,12 +417,12 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python3 osint.py                           # Interactive menu
-  python3 osint.py --domain example.com      # Domain recon
-  python3 osint.py --username johndoe        # Person lookup
-  python3 osint.py --ip 8.8.8.8             # Infrastructure scan
-  python3 osint.py --full                    # Full investigation
-  python3 osint.py --status                  # Check installed tools
+  python osint.py                           # Interactive menu
+  python osint.py --domain example.com      # Domain recon
+  python osint.py --username johndoe        # Person lookup
+  python osint.py --ip 8.8.8.8             # Infrastructure scan
+  python osint.py --full                    # Full investigation
+  python osint.py --status                  # Check installed tools
         """,
     )
     parser.add_argument("--domain", "-d", help="Run domain recon workflow")

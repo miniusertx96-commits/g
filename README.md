@@ -6,22 +6,21 @@ A layered, modular OSINT investigation stack covering case management, automatio
 
 ---
 
-## Quick Start
+## Quick Start (Windows)
 
-```bash
+```powershell
 # Clone and install
 git clone https://github.com/YOUR_USER/osint-toolkit.git
 cd osint-toolkit
-chmod +x setup.sh
-./setup.sh
+powershell -ExecutionPolicy Bypass -File setup.ps1
 
 # Launch the CLI
-python3 osint.py
+python osint.py
 ```
 
-Or use Docker:
+Or use Docker Desktop:
 
-```bash
+```powershell
 docker-compose up -d
 ```
 
@@ -173,34 +172,34 @@ Massive for attack surface mapping, threat intel, exposed databases, and ransomw
 ```
 osint-toolkit/
   README.md                    # This file
-  setup.sh                     # One-command installer
+  setup.ps1                    # One-command installer (PowerShell)
   osint.py                     # Main CLI launcher
   requirements.txt             # Python dependencies
   Dockerfile                   # Containerized stack
   docker-compose.yml           # Multi-service orchestration
-  config/
+  config\
     api_keys.example.yaml      # API key template
     targets.example.yaml       # Target config template
-  scripts/
-    install_tools.sh           # Bulk tool installer
-    install_spiderfoot.sh      # SpiderFoot setup
-    install_sherlock.sh        # Sherlock setup
-    install_recon_ng.sh        # Recon-ng setup
-    install_theharvester.sh    # theHarvester setup
-    install_amass.sh           # Amass setup
-    install_holehe.sh          # Holehe setup
-  docs/
+  scripts\
+    install_tools.ps1          # Bulk tool installer
+    install_spiderfoot.ps1     # SpiderFoot setup
+    install_sherlock.ps1       # Sherlock setup
+    install_recon_ng.ps1       # Recon-ng setup
+    install_theharvester.ps1   # theHarvester setup
+    install_amass.ps1          # Amass setup
+    install_holehe.ps1         # Holehe setup
+  docs\
     STACK_OVERVIEW.md          # Full OSINT stack deep-dive
     WORKFLOW.md                # Investigation workflow guide
     TOOLS.md                   # Detailed tool reference
     SKILL_LEVELS.md            # Setup guides by experience
     AI_INTEGRATION.md          # AI tools integration
-  workflows/
-    domain_recon.sh            # Domain recon pipeline
-    person_lookup.sh           # People investigation
-    infra_scan.sh              # Infrastructure scanning
-    full_investigation.sh      # End-to-end investigation
-  templates/
+  workflows\
+    domain_recon.ps1           # Domain recon pipeline
+    person_lookup.ps1          # People investigation
+    infra_scan.ps1             # Infrastructure scanning
+    full_investigation.ps1     # End-to-end investigation
+  templates\
     report_template.md         # Investigation report
     case_template.md           # Case file template
 ```
@@ -211,9 +210,9 @@ osint-toolkit/
 
 Copy the example configs and add your API keys:
 
-```bash
-cp config/api_keys.example.yaml config/api_keys.yaml
-# Edit config/api_keys.yaml with your keys
+```powershell
+Copy-Item config\api_keys.example.yaml config\api_keys.yaml
+# Edit config\api_keys.yaml with your keys
 ```
 
 See `docs/TOOLS.md` for where to get API keys for each service.
