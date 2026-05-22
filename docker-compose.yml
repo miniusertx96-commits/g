@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+  # SpiderFoot — Automated OSINT recon (200+ sources)
+  spiderfoot:
+    image: spiderfoot/spiderfoot:latest
+    container_name: osint-spiderfoot
+    ports:
+      - "5001:5001"
+    volumes:
+      - spiderfoot_data:/var/lib/spiderfoot
+    restart: unless-stopped
+
+  # Elasticsearch — Index and search OSINT data
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: osint-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+
+  # Kibana — Visualize OSINT data from Elasticsearch
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: osint-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+
+  # OSINT Toolkit CLI
+  toolkit:
+    build: .
+    container_name: osint-toolkit
+    volumes:
+      - ./config:/opt/osint-toolkit/config
+      - ./results:/opt/osint-toolkit/results
+    depends_on:
+      - elasticsearch
+    profiles:
+      - cli
+
+volumes:
+  spiderfoot_data:
+  es_data:

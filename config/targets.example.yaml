@@ -1,0 +1,38 @@
+# OSINT Toolkit — Target Configuration
+# Copy to targets.yaml and fill in your investigation targets.
+
+case:
+  name: "Example Investigation"
+  id: "CASE-001"
+  date: "2026-01-01"
+  analyst: "Your Name"
+  description: "Brief description of the investigation"
+
+targets:
+  domains:
+    - example.com
+    # - target-domain.org
+
+  emails:
+    - user@example.com
+    # - target@company.com
+
+  usernames:
+    - johndoe
+    # - target_user
+
+  ips:
+    - 93.184.216.34
+    # - 10.0.0.1
+
+  phones:
+    # - "+1234567890"
+
+  companies:
+    # - "Acme Corp"
+
+options:
+  output_dir: "./results"
+  save_screenshots: true
+  archive_pages: true
+  generate_report: true

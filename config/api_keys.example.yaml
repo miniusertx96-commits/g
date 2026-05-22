@@ -1,0 +1,29 @@
+# OSINT Toolkit — API Keys Configuration
+# Copy this file to api_keys.yaml and fill in your keys.
+# Never commit api_keys.yaml to version control.
+
+shodan:
+  api_key: ""                    # https://account.shodan.io/
+
+censys:
+  api_id: ""                     # https://search.censys.io/account/api
+  api_secret: ""
+
+virustotal:
+  api_key: ""                    # https://www.virustotal.com/gui/my-apikey
+
+haveibeenpwned:
+  api_key: ""                    # https://haveibeenpwned.com/API/Key
+
+intelx:
+  api_key: ""                    # https://intelx.io/account?tab=developer
+
+openai:
+  api_key: ""                    # https://platform.openai.com/api-keys
+  model: "gpt-4o"
+
+ipinfo:
+  token: ""                      # https://ipinfo.io/account/token
+
+securitytrails:
+  api_key: ""                    # https://securitytrails.com/app/account
